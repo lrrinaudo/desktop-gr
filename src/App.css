@@ -1,0 +1,61 @@
+/* src/App.css */
+body {
+	margin: 0;
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	background: linear-gradient(to right, #4A9F68, #3b7f56);
+	height: 100vh;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.container {
+	background-color: white;
+	padding: 40px;
+	border-radius: 12px;
+	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+	width: 300px;
+	text-align: center;
+}
+
+h2 {
+	color: #4A9F68;
+	margin-bottom: 20px;
+}
+
+.form input {
+	display: block;
+	width: 100%;
+	margin: 10px 0;
+	padding: 10px;
+	border: 1px solid #ccc;
+	border-radius: 8px;
+}
+
+.form button {
+	width: 100%;
+	padding: 10px;
+	background-color: #4A9F68;
+	color: white;
+	font-weight: bold;
+	border: none;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+}
+
+.form button:hover {
+	background-color: #3b7f56;
+}
+
+.error {
+	color: #ff4d4f;
+	margin-top: 10px;
+}
+
+.glucose-box {
+	background-color: #f4f4f4;
+	padding: 15px;
+	border-radius: 10px;
+	text-align: left;
+}
