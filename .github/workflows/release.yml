@@ -7,8 +7,6 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
