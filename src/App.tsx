@@ -47,7 +47,7 @@ function App() {
 
 		const intervalId = setInterval(() => {
 			fetchGlucose(username, password)
-		}, 90 * 1000) // 90 segundos
+		}, 70 * 1000) // 70 segundos
 
 		return () => clearInterval(intervalId) // limpiar al desmontar
 	}, [glucose, username, password])
@@ -157,10 +157,12 @@ function App() {
 		}
 	}
 
-	function getColorByGlucoseValue(value: number): string {
+	function getColorByGlucoseValue(value: number, isChart: boolean): string {
+		const a = isChart
+		console.log(a)
 		if (value > 240) return '#E86D0E';
 		if (value > 180) return '#FFBC01';
-		if (value >= 70) return 'white';
+		if (value >= 70) return !isChart ? 'white' : 'black';
 		// if (value >= 70) return '#90CB3D';
 		return '#ED1C26';
 	}
@@ -203,7 +205,7 @@ function App() {
 					alignItems: 'center',
 					justifyContent: 'center',
 					gap: '2px', // esto da un poco de separación entre valor y botón
-					padding: '1px',
+					padding: 3,
 					boxSizing: 'border-box',
 					overflow: 'hidden',
 				} as any}
@@ -211,12 +213,12 @@ function App() {
 				<p style={{ margin: 0 }}>
 					{error ?
 						<>
-							<strong style={{ color: '#ED1C26', fontSize: 12 }}>  Error</strong>
+							<strong style={{ color: '#ED1C26', fontSize: 12 }}>Error</strong>
 						</>
 						:
 						<>
 							{/* <strong style={{fontSize: 12}}>mg/dL:</strong><strong style={{ color: getColorByGlucoseValue(glucose.value), fontSize: 12 }}> {glucose.value} </strong> {trendToArrow(glucose.trend)} */}
-							<strong style={{ color: getColorByGlucoseValue(glucose.value), fontSize: 18 }}> {glucose.value} </strong> {trendToArrow(glucose.trend)}
+							<strong style={{ color: getColorByGlucoseValue(glucose.value, false), fontSize: 18 }}> {glucose.value} </strong> {trendToArrow(glucose.trend)}
 						</>
 					}
 				</p>
@@ -269,7 +271,6 @@ function App() {
 									dot={false}
 								/>
 							</LineChart>
-
 						</ResponsiveContainer>
 					)}
 					<button onClick={() => changeWindow('main')} style={{ ...styles.button, marginTop: '24px', backgroundColor: '#10B981' }}>
@@ -396,7 +397,7 @@ const styles: { [key: string]: React.CSSProperties } = {
 		padding: '2px',
 		border: 'none',
 		borderRadius: '8px',
-		backgroundColor: '#3B82F6', // azul suave (Tailwind Blue-500)
+		backgroundColor: '#10B981', // azul suave (Tailwind Blue-500)
 		color: '#fff',
 		fontSize: 10,
 		cursor: 'pointer',

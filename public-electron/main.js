@@ -75,7 +75,7 @@ ipcMain.on('set-window', (event, screen) => {
             win.setSize(400, 500)
             break
         case 'main':
-            win.setSize(55, 50)
+            win.setSize(62, 50)
             win.setAlwaysOnTop(true)
             // win.setResizable(false)
             break

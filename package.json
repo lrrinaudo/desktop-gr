@@ -1,7 +1,7 @@
 {
   "name": "desktop-gr",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "main": "public-electron/main.js",
   "author": {
@@ -11,7 +11,7 @@
   "homepage": "https://github.com/lrrinaudo/desktop-gr",
   "build": {
     "appId": "com.desktop-gr.id",
-    "productName": "Desktop-",
+    "productName": "Desktop-GR",
     "files": [
       "dist/**/*",
       "public-electron/**/*",
@@ -27,14 +27,14 @@
     },
     "win": {
       "target": "nsis",
-      "icon": "src/assets/diabetes256.ico"
+      "icon": "src/assets/sugar-blood-level256.ico"
     },
     "linux": {
       "target": [
         "AppImage",
         "deb"
       ],
-      "icon": "src/assets/diabetes.png"
+      "icon": "src/assets/sugar-blood-level.png"
     }
   },
   "scripts": {
