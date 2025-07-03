@@ -47,7 +47,7 @@ function App() {
 
 		const intervalId = setInterval(() => {
 			fetchGlucose(username, password)
-		}, 70 * 1000) // 70 segundos
+		}, 90 * 1000) // 90 segundos
 
 		return () => clearInterval(intervalId) // limpiar al desmontar
 	}, [glucose, username, password])
