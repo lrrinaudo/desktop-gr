@@ -3,11 +3,15 @@ import { ClipLoader } from 'react-spinners'
 import {
 	LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceArea
 } from 'recharts'
+import logo from './assets/llu.png'
 
 function App() {
 
 	// Estado para controlar pantalla: 'main' o 'history'
-	const [page, setPage] = useState<'main' | 'history' | 'login'>('main')
+	const [page, setPage] = useState<'main' | 'history' | 'login'>('login')
+
+	// Version actual el 09/10/2025 5.3.0
+	const [version, setVersion] = useState('5.3.0')
 
 	const [username, setUsername] = useState('')
 	const [password, setPassword] = useState('')
@@ -21,18 +25,25 @@ function App() {
 	useEffect(() => {
 		const loadSavedCredentials = async () => {
 			try {
+				changeWindow('login') // aseguramos que al arrancar esté en tamaño login
 				const creds = await window.electron.invoke('get-credentials')
 				if (creds?.username && creds?.password) {
 					setUsername(creds.username)
 					setPassword(creds.password)
-					await fetchGlucose(creds.username, creds.password)
-					changeWindow('main')
+					if (creds.version) setVersion(creds.version)
+
+					const success = await fetchGlucose(creds.username, creds.password, creds.version || '5.3.0')
+					if (success) {
+						changeWindow('main') // solo si login OK
+					} else {
+						changeWindow('login') // si falla, volvemos a login
+					}
 				} else {
 					setLoading(false) // mostrar login si no hay credenciales
 				}
 			} catch (err) {
 				console.error('Error al cargar credenciales:', err)
-				setLoading(false)
+				changeWindow('login')
 			} finally {
 				setLoading(false)
 			}
@@ -41,24 +52,26 @@ function App() {
 		loadSavedCredentials()
 	}, [])
 
+
 	// Ejecutar fetchGlucose cada 1 minuto si hay datos de glucosa (ya logueado)
 	useEffect(() => {
 		if (!glucose) return // no iniciar intervalo si no hay glucosa (login pendiente)
 
 		const intervalId = setInterval(() => {
-			fetchGlucose(username, password)
+			fetchGlucose(username, password, version)
 		}, 90 * 1000) // 90 segundos
 
 		return () => clearInterval(intervalId) // limpiar al desmontar
 	}, [glucose, username, password])
 
-	const fetchGlucose = async (user: string, pass: string) => {
+	const fetchGlucose = async (user: string, pass: string, ver: string) => {
 		try {
 			setError('')
 			// setLoading(true)
 			const response = await window.electron.invoke('get-glucose', {
 				username: user,
 				password: pass,
+				version: ver
 			})
 
 			if (response.status != 'ok') {
@@ -86,10 +99,12 @@ function App() {
 
 	const handleLogin = async () => {
 		setLoading(true)
-		const success = await fetchGlucose(username, password)
+		const success = await fetchGlucose(username, password, version)
 		if (success) {
-			await window.electron.invoke('save-credentials', { username, password }) // 🔁 esto falta
+			await window.electron.invoke('save-credentials', { username, password, version }) // 🔁 esto falta
 			changeWindow('main')
+		} else {
+			changeWindow('login') // 👈 asegura que vuelva al tamaño login
 		}
 		setLoading(false)
 	}
@@ -100,6 +115,7 @@ function App() {
 		setPassword('')
 		setGlucose(null)
 		setHistory([])
+		setVersion('5.3.0')
 		changeWindow('login')
 	}
 
@@ -125,8 +141,8 @@ function App() {
 						fontSize: '14px',
 					}}
 				>
-					<p><strong>Valor:</strong> {data.value} mg/dL</p>
-					<p><strong>Hora:</strong> {data.timestamp}</p>
+					<p><strong>Value:</strong> {data.value} mg/dL</p>
+					<p><strong>Time:</strong> {data.timestamp}</p>
 				</div>
 			);
 		}
@@ -184,7 +200,7 @@ function App() {
 					}}
 				>
 					<ClipLoader color="#3B82F6" size={40} />
-					<h2 style={{ ...styles.title, marginTop: '16px' }}>Cargando...</h2>
+					<h2 style={{ ...styles.title, marginTop: '16px' }}>Loading...</h2>
 				</div>
 			</div>
 		)
@@ -229,7 +245,7 @@ function App() {
 						WebkitAppRegion: 'no-drag', // importante para que el botón sea clickeable
 					} as any}
 				>
-					Historial
+					History
 				</button>
 			</div>
 		)
@@ -239,9 +255,9 @@ function App() {
 		return (
 			<div style={styles.page}>
 				<div style={{ ...styles.card, maxWidth: '800px' }}>
-					<h2 style={styles.title}>Historial de Glucosa</h2>
+					<h2 style={styles.title}>Glucose History</h2>
 					{history.length === 0 ? (
-						<p>No hay datos de historial para mostrar.</p>
+						<p>No data.</p>
 					) : (
 						<ResponsiveContainer width="100%" height={300} style={{ WebkitAppRegion: 'no-drag' } as any}>
 							<LineChart data={history.map((h) => ({
@@ -274,13 +290,13 @@ function App() {
 						</ResponsiveContainer>
 					)}
 					<button onClick={() => changeWindow('main')} style={{ ...styles.button, marginTop: '24px', backgroundColor: '#10B981' }}>
-						Volver
+						Back
 					</button>
 					<button onClick={handleLogout} style={{ ...styles.button, marginTop: '24px' }}>
-						Cerrar sesión
+						Logout
 					</button>
 					<button onClick={handleExit} style={{ ...styles.button, marginTop: '24px', backgroundColor: '#ED1C26' }}>
-						Salir
+						Exit
 					</button>
 				</div>
 			</div>
@@ -291,7 +307,15 @@ function App() {
 		<div style={styles.page}>
 			<h1 style={styles.loginTitle}>Glucose Read</h1>
 			<div style={{ ...styles.card, WebkitAppRegion: 'no-drag' } as any}>
-				<h2 style={styles.title}>Iniciar sesión</h2>
+
+				<p style={{...styles.title, fontSize: "16px"}}>Login with LibreLinkUp Account</p>
+				<div style={{ textAlign: 'center', marginBottom: 16 }}>
+					<img
+						src={logo}
+						alt="Logo"
+						style={{ width: 35, display: 'inline-block' }}
+					/>
+				</div>
 				<div
 					style={styles.form}
 					onKeyDown={(e) => {
@@ -302,16 +326,23 @@ function App() {
 				>
 					<input
 						type="email"
-						placeholder={"Correo electrónico"}
+						placeholder={"Email"}
 						value={username}
 						onChange={(e) => setUsername(e.target.value)}
 						style={styles.input}
 					/>
 					<input
 						type="password"
-						placeholder={"Contraseña"}
+						placeholder={"Password"}
 						value={password}
 						onChange={(e) => setPassword(e.target.value)}
+						style={styles.input}
+					/>
+					<input
+						type="text"
+						placeholder={"Versión (e.g. 5.3.0)"}
+						value={version}
+						onChange={(e) => setVersion(e.target.value)}
 						style={styles.input}
 					/>
 					<button
@@ -323,7 +354,7 @@ function App() {
 							...(hovered ? styles.buttonHover : {}),
 						}}
 					>
-						Iniciar sesión
+						Login
 					</button>
 					{error && <p style={styles.error}>{error}</p>}
 				</div>

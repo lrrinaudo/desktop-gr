@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url'
 import { LibreLinkUpClient } from '@diakem/libre-link-up-api-client'
 import Store from 'electron-store'
 
+app.disableHardwareAcceleration()
 
 const store = new Store();
 
@@ -72,7 +73,7 @@ ipcMain.on('set-window', (event, screen) => {
 
     switch (screen) {
         case 'login':
-            win.setSize(400, 500)
+            win.setSize(400, 600)
             break
         case 'main':
             win.setSize(62, 50)
@@ -88,12 +89,12 @@ ipcMain.on('set-window', (event, screen) => {
 })
 
 
-ipcMain.handle('get-glucose', async (event, { username, password }) => {
+ipcMain.handle('get-glucose', async (event, { username, password, version }) => {
     try {
         const { read } = LibreLinkUpClient({
             username,
             password,
-            clientVersion: '4.9.0',
+            clientVersion: version || '5.3.0',
         });
 
         const response = await read();
