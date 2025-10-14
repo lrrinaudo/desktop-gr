@@ -42,7 +42,7 @@ function App() {
 					setLoading(false) // mostrar login si no hay credenciales
 				}
 			} catch (err) {
-				console.error('Error al cargar credenciales:', err)
+				console.error('Error loading credentials:', err)
 				changeWindow('login')
 			} finally {
 				setLoading(false)
@@ -85,9 +85,9 @@ function App() {
 			// setError('Credenciales inválidas o error de conexión.')
 			// return false
 			if (err.status === 'auth_error') {
-				setError('Credenciales inválidas o error de conexión.')
+				setError('Bad credentials or network error.')
 			} else {
-				setError('Error')
+				setError('Too many request to libreLink account, try again in 90 seconds OR try another version number')
 			}
 			return false
 

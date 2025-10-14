@@ -73,18 +73,17 @@ ipcMain.on('set-window', (event, screen) => {
 
     switch (screen) {
         case 'login':
-            win.setSize(400, 600)
+            win.setSize(400, 700)
             break
         case 'main':
             win.setSize(62, 50)
-            win.setAlwaysOnTop(true)
             // win.setResizable(false)
             break
         case 'history':
             win.setSize(800, 700)
             break
     }
-
+    win.setAlwaysOnTop(true)
     win.center()
 })
 
