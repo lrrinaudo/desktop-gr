@@ -17,6 +17,7 @@ https://github.com/DiaKEM/libre-link-up-api-client
 <br>
 <img src="./src/assets/Screenshot2.png" width="50">
 <br>
+
 [Download Windows](https://github.com/lrrinaudo/desktop-gr/releases/download/untagged-03f6318777d52095b750/Desktop-GR-Setup-1.0.0.exe)  
 [Download Linux](https://github.com/lrrinaudo/desktop-gr/releases/download/untagged-03f6318777d52095b750/desktop-gr_1.0.0_amd64.deb)  
 
