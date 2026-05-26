@@ -22,6 +22,10 @@ function App() {
 	const [hovered, setHovered] = useState(false)
 	const [historyHoveredButton, setHistoryHoveredButton] = useState<'back' | 'logout' | 'exit' | null>(null)
 	const [loading, setLoading] = useState(true)
+	const [windowSize, setWindowSize] = useState({
+		width: window.innerWidth,
+		height: window.innerHeight,
+	})
 
 	useEffect(() => {
 		const loadSavedCredentials = async () => {
@@ -58,6 +62,15 @@ function App() {
 			window.electron.send('set-window', 'loading')
 		}
 	}, [loading])
+
+	useEffect(() => {
+		const handleResize = () => {
+			setWindowSize({ width: window.innerWidth, height: window.innerHeight })
+		}
+
+		window.addEventListener('resize', handleResize)
+		return () => window.removeEventListener('resize', handleResize)
+	}, [])
 
 
 	// Ejecutar fetchGlucose cada 1 minuto si hay datos de glucosa (ya logueado)
@@ -194,6 +207,16 @@ function App() {
 		window.close()
 	}
 
+	const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
+	const mainScale = clamp(Math.min(windowSize.width / 62, windowSize.height / 50), 0.55, 6)
+	const mainValueFontSize = Math.round(clamp(18 * mainScale, 10, 108))
+	const mainArrowFontSize = Math.round(clamp(16 * mainScale, 9, 96))
+	const mainHistoryFontSize = Math.round(clamp(10 * mainScale, 6, 52))
+	const mainHistoryPaddingY = Math.round(clamp(2 * mainScale, 1, 12))
+	const mainHistoryPaddingX = Math.round(clamp(6 * mainScale, 3, 26))
+	const mainGap = `${Math.round(clamp(2 * mainScale, 1, 14))}px`
+	const mainHistoryBorderRadius = `${Math.round(clamp(8 * mainScale, 5, 18))}px`
+
 	if (loading) {
 		return (
 			<div style={styles.page}>
@@ -220,7 +243,7 @@ function App() {
 				style={{
 					backgroundColor: 'black',
 					color: 'white',
-					borderRadius: '12px',
+					borderRadius: '9px',
 					border: '1px solid rgba(255,255,255,0.18)',
 					WebkitAppRegion: 'drag',
 					width: '100vw',
@@ -229,21 +252,22 @@ function App() {
 					flexDirection: 'column',
 					alignItems: 'center',
 					justifyContent: 'center',
-					gap: '2px', // esto da un poco de separación entre valor y botón
+					gap: mainGap,
 					padding: 3,
 					boxSizing: 'border-box',
 					overflow: 'hidden',
 				} as any}
 			>
-				<p style={{ margin: 0 }}>
+				<p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: `${Math.max(2, Math.round(mainScale * 2))}px` }}>
 					{error ?
 						<>
-							<strong style={{ color: '#ED1C26', fontSize: 12 }}>Error</strong>
+							<strong style={{ color: '#ED1C26', fontSize: Math.max(10, Math.round(12 * mainScale)) }}>Error</strong>
 						</>
 						:
 						<>
 							{/* <strong style={{fontSize: 12}}>mg/dL:</strong><strong style={{ color: getColorByGlucoseValue(glucose.value), fontSize: 12 }}> {glucose.value} </strong> {trendToArrow(glucose.trend)} */}
-							<strong style={{ color: getColorByGlucoseValue(glucose.value, false), fontSize: 18 }}> {glucose.value} </strong> {trendToArrow(glucose.trend)}
+							<strong style={{ color: getColorByGlucoseValue(glucose.value, false), fontSize: mainValueFontSize, lineHeight: 1 }}> {glucose.value} </strong>
+							<span style={{ fontSize: mainArrowFontSize, lineHeight: 1 }}>{trendToArrow(glucose.trend)}</span>
 						</>
 					}
 				</p>
@@ -251,6 +275,9 @@ function App() {
 					onClick={() => changeWindow('history')}
 					style={{
 						...styles.buttonHistory,
+						padding: `${mainHistoryPaddingY}px ${mainHistoryPaddingX}px`,
+						fontSize: mainHistoryFontSize,
+						borderRadius: mainHistoryBorderRadius,
 						WebkitAppRegion: 'no-drag', // importante para que el botón sea clickeable
 					} as any}
 				>
