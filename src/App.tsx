@@ -20,6 +20,7 @@ function App() {
 	const [history, setHistory] = useState<any[]>([])
 
 	const [hovered, setHovered] = useState(false)
+	const [historyHoveredButton, setHistoryHoveredButton] = useState<'back' | 'logout' | 'exit' | null>(null)
 	const [loading, setLoading] = useState(true)
 
 	useEffect(() => {
@@ -51,6 +52,12 @@ function App() {
 
 		loadSavedCredentials()
 	}, [])
+
+	useEffect(() => {
+		if (loading) {
+			window.electron.send('set-window', 'loading')
+		}
+	}, [loading])
 
 
 	// Ejecutar fetchGlucose cada 1 minuto si hay datos de glucosa (ya logueado)
@@ -213,6 +220,8 @@ function App() {
 				style={{
 					backgroundColor: 'black',
 					color: 'white',
+					borderRadius: '12px',
+					border: '1px solid rgba(255,255,255,0.18)',
 					WebkitAppRegion: 'drag',
 					width: '100vw',
 					height: '100vh',
@@ -289,15 +298,43 @@ function App() {
 							</LineChart>
 						</ResponsiveContainer>
 					)}
-					<button onClick={() => changeWindow('main')} style={{ ...styles.button, marginTop: '24px', backgroundColor: '#10B981' }}>
-						Back
-					</button>
-					<button onClick={handleLogout} style={{ ...styles.button, marginTop: '24px' }}>
-						Logout
-					</button>
-					<button onClick={handleExit} style={{ ...styles.button, marginTop: '24px', backgroundColor: '#ED1C26' }}>
-						Exit
-					</button>
+					<div style={styles.historyActions}>
+						<button
+							onClick={() => changeWindow('main')}
+							onMouseEnter={() => setHistoryHoveredButton('back')}
+							onMouseLeave={() => setHistoryHoveredButton(null)}
+							style={{
+								...styles.historyPrimaryButton,
+								...(historyHoveredButton === 'back' ? styles.historyPrimaryButtonHover : {})
+							}}
+						>
+							Back
+						</button>
+						<div style={styles.historySecondaryActions}>
+							<button
+								onClick={handleLogout}
+								onMouseEnter={() => setHistoryHoveredButton('logout')}
+								onMouseLeave={() => setHistoryHoveredButton(null)}
+								style={{
+									...styles.historySecondaryButton,
+									...(historyHoveredButton === 'logout' ? styles.historySecondaryButtonHover : {})
+								}}
+							>
+								Logout
+							</button>
+							<button
+								onClick={handleExit}
+								onMouseEnter={() => setHistoryHoveredButton('exit')}
+								onMouseLeave={() => setHistoryHoveredButton(null)}
+								style={{
+									...styles.historyDangerButton,
+									...(historyHoveredButton === 'exit' ? styles.historyDangerButtonHover : {})
+								}}
+							>
+								Exit
+							</button>
+						</div>
+					</div>
 				</div>
 			</div>
 		)
@@ -450,6 +487,77 @@ const styles: { [key: string]: React.CSSProperties } = {
 	},
 	buttonHover: {
 		backgroundColor: '#2563EB', // azul más oscuro al pasar el mouse
+	},
+	historyActions: {
+		marginTop: '24px',
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		gap: '12px',
+		flexWrap: 'wrap',
+	},
+	historySecondaryActions: {
+		display: 'flex',
+		alignItems: 'center',
+		gap: '10px',
+		marginLeft: 'auto',
+	},
+	historyPrimaryButton: {
+		padding: '11px 16px',
+		border: 'none',
+		borderRadius: '10px',
+		backgroundColor: '#10B981',
+		color: '#fff',
+		fontSize: '14px',
+		fontWeight: 600,
+		cursor: 'pointer',
+		transition: 'all 0.2s ease',
+		boxShadow: '0 6px 16px rgba(16,185,129,0.25)',
+		WebkitAppRegion: 'no-drag',
+	} as any,
+	historyPrimaryButtonHover: {
+		backgroundColor: '#059669',
+		transform: 'translateY(-1px)',
+		boxShadow: '0 10px 20px rgba(5,150,105,0.3)',
+	},
+	historySecondaryButton: {
+		padding: '11px 16px',
+		border: '1px solid #cbd5e1',
+		borderRadius: '10px',
+		backgroundColor: '#fff',
+		color: '#334155',
+		fontSize: '14px',
+		fontWeight: 600,
+		cursor: 'pointer',
+		transition: 'all 0.2s ease',
+		boxShadow: '0 2px 8px rgba(15,23,42,0.08)',
+		WebkitAppRegion: 'no-drag',
+	} as any,
+	historySecondaryButtonHover: {
+		borderColor: '#94A3B8',
+		backgroundColor: '#F8FAFC',
+		transform: 'translateY(-1px)',
+		boxShadow: '0 8px 16px rgba(15,23,42,0.12)',
+	},
+	historyDangerButton: {
+		padding: '11px 16px',
+		border: '1px solid #FCA5A5',
+		borderRadius: '10px',
+		backgroundColor: '#FFF1F2',
+		color: '#BE123C',
+		fontSize: '14px',
+		fontWeight: 700,
+		cursor: 'pointer',
+		transition: 'all 0.2s ease',
+		boxShadow: '0 2px 8px rgba(190,18,60,0.12)',
+		WebkitAppRegion: 'no-drag',
+	} as any,
+	historyDangerButtonHover: {
+		borderColor: '#FB7185',
+		backgroundColor: '#FFE4E6',
+		color: '#9F1239',
+		transform: 'translateY(-1px)',
+		boxShadow: '0 8px 16px rgba(190,18,60,0.2)',
 	},
 	loginTitle: {
 		fontSize: '32px',

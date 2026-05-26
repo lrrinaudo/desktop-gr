@@ -15,11 +15,16 @@ const __dirname = path.dirname(__filename)
 let mainWindow
 
 function createWindow() {
+    const isLinux = process.platform === 'linux'
+
     mainWindow = new BrowserWindow({
         width: 400,
         height: 500,
         frame: false, // ❌ sin marco
-        transparent: false, // si querés también el fondo transparente
+        transparent: isLinux,
+        alwaysOnTop: true,
+        hasShadow: true,
+        backgroundColor: isLinux ? '#00000000' : '#000000',
         resizable: true, // o false si querés que no se pueda cambiar el tamaño
         webPreferences: {
             contextIsolation: true,
@@ -27,6 +32,9 @@ function createWindow() {
             preload: path.join(__dirname, '../src/preload.js'),
         },
     })
+
+    // Mantener siempre al frente también en Windows/Linux.
+    mainWindow.setAlwaysOnTop(true, 'screen-saver')
 
     mainWindow.loadURL(`file://${path.join(__dirname, '../dist/index.html')}`)
 
@@ -72,6 +80,9 @@ ipcMain.on('set-window', (event, screen) => {
     if (!win) return
 
     switch (screen) {
+            case 'loading':
+                win.setSize(400, 280)
+                break
         case 'login':
             win.setSize(400, 700)
             break
@@ -80,10 +91,10 @@ ipcMain.on('set-window', (event, screen) => {
             // win.setResizable(false)
             break
         case 'history':
-            win.setSize(800, 700)
+            win.setSize(800, 560)
             break
     }
-    win.setAlwaysOnTop(true)
+    win.setAlwaysOnTop(true, 'screen-saver')
     win.center()
 })
 
