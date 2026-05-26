@@ -8,6 +8,7 @@
     "name": "Leandro Rinaudo",
     "email": "lrrinaudo@gmail.com"
   },
+  "description": "Desktop glucose reader for LibreLinkUp",
   "homepage": "https://github.com/lrrinaudo/desktop-gr",
   "build": {
     "appId": "com.desktop-gr.id",
@@ -27,7 +28,8 @@
     },
     "win": {
       "target": "nsis",
-      "icon": "src/assets/sugar-blood-level256.ico"
+      "icon": "src/assets/sugar-blood-level256.ico",
+      "signAndEditExecutable": false
     },
     "linux": {
       "target": [

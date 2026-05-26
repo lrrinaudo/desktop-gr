@@ -33,3 +33,10 @@ If permission error:
 sudo chown root:root node_modules/electron/dist/chrome-sandbox
 sudo chmod 4755 node_modules/electron/dist/chrome-sandbox
 ```
+
+BUILD:
+```
+npm run dist
+git tag v1.0.{version_number}
+git push origin v1.0.{version_number}
+```
