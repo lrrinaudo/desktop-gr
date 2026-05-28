@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ClipLoader } from 'react-spinners'
 import {
 	LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceArea
@@ -25,6 +25,14 @@ function App() {
 	const [windowSize, setWindowSize] = useState({
 		width: window.innerWidth,
 		height: window.innerHeight,
+	})
+	const mainInteractionRef = useRef({
+		pointerDown: false,
+		dragging: false,
+		startScreenX: 0,
+		startScreenY: 0,
+		offsetX: 0,
+		offsetY: 0,
 	})
 
 	useEffect(() => {
@@ -71,6 +79,47 @@ function App() {
 		window.addEventListener('resize', handleResize)
 		return () => window.removeEventListener('resize', handleResize)
 	}, [])
+
+	useEffect(() => {
+		const handleWindowMouseMove = (e: MouseEvent) => {
+			const state = mainInteractionRef.current
+			if (!state.pointerDown) return
+
+			const deltaX = e.screenX - state.startScreenX
+			const deltaY = e.screenY - state.startScreenY
+			if (!state.dragging && Math.hypot(deltaX, deltaY) >= mainDragThreshold) {
+				state.dragging = true
+			}
+
+			if (!state.dragging) return
+
+			window.electron.send('set-window-position', {
+				x: Math.round(e.screenX - state.offsetX),
+				y: Math.round(e.screenY - state.offsetY),
+			})
+		}
+
+		const handleWindowMouseUp = () => {
+			const state = mainInteractionRef.current
+			if (!state.pointerDown) return
+
+			const shouldNavigateToHistory = page === 'main' && !state.dragging
+			state.pointerDown = false
+			state.dragging = false
+
+			if (shouldNavigateToHistory) {
+				changeWindow('history')
+			}
+		}
+
+		window.addEventListener('mousemove', handleWindowMouseMove)
+		window.addEventListener('mouseup', handleWindowMouseUp)
+
+		return () => {
+			window.removeEventListener('mousemove', handleWindowMouseMove)
+			window.removeEventListener('mouseup', handleWindowMouseUp)
+		}
+	}, [page])
 
 
 	// Ejecutar fetchGlucose cada 1 minuto si hay datos de glucosa (ya logueado)
@@ -208,14 +257,30 @@ function App() {
 	}
 
 	const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
-	const mainScale = clamp(Math.min(windowSize.width / 62, windowSize.height / 50), 0.55, 6)
+	const mainScale = clamp(Math.min(windowSize.width / 56, windowSize.height / 34), 0.55, 6)
 	const mainValueFontSize = Math.round(clamp(18 * mainScale, 10, 108))
 	const mainArrowFontSize = Math.round(clamp(16 * mainScale, 9, 96))
-	const mainHistoryFontSize = Math.round(clamp(10 * mainScale, 6, 52))
-	const mainHistoryPaddingY = Math.round(clamp(2 * mainScale, 1, 12))
-	const mainHistoryPaddingX = Math.round(clamp(6 * mainScale, 3, 26))
-	const mainGap = `${Math.round(clamp(2 * mainScale, 1, 14))}px`
-	const mainHistoryBorderRadius = `${Math.round(clamp(8 * mainScale, 5, 18))}px`
+	const mainGap = '0px'
+	const mainDragThreshold = 4
+
+	const handleMainMouseDown = async (e: React.MouseEvent<HTMLDivElement>) => {
+		if (e.button !== 0) return
+
+		const state = mainInteractionRef.current
+		state.pointerDown = true
+		state.dragging = false
+		state.startScreenX = e.screenX
+		state.startScreenY = e.screenY
+
+		try {
+			const bounds = await window.electron.invoke('get-window-bounds')
+			state.offsetX = e.screenX - bounds.x
+			state.offsetY = e.screenY - bounds.y
+		} catch {
+			state.offsetX = 0
+			state.offsetY = 0
+		}
+	}
 
 	if (loading) {
 		return (
@@ -240,12 +305,12 @@ function App() {
 
 		return (
 			<div
+				onMouseDown={handleMainMouseDown}
 				style={{
 					backgroundColor: 'black',
 					color: 'white',
 					borderRadius: '9px',
 					border: '1px solid rgba(255,255,255,0.18)',
-					WebkitAppRegion: 'drag',
 					width: '100vw',
 					height: '100vh',
 					display: 'flex',
@@ -253,9 +318,10 @@ function App() {
 					alignItems: 'center',
 					justifyContent: 'center',
 					gap: mainGap,
-					padding: 3,
+					padding: 0,
 					boxSizing: 'border-box',
 					overflow: 'hidden',
+					cursor: 'grab',
 				} as any}
 			>
 				<p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: `${Math.max(2, Math.round(mainScale * 2))}px` }}>
@@ -271,18 +337,6 @@ function App() {
 						</>
 					}
 				</p>
-				<button
-					onClick={() => changeWindow('history')}
-					style={{
-						...styles.buttonHistory,
-						padding: `${mainHistoryPaddingY}px ${mainHistoryPaddingX}px`,
-						fontSize: mainHistoryFontSize,
-						borderRadius: mainHistoryBorderRadius,
-						WebkitAppRegion: 'no-drag', // importante para que el botón sea clickeable
-					} as any}
-				>
-					History
-				</button>
 			</div>
 		)
 	}
@@ -483,18 +537,6 @@ const styles: { [key: string]: React.CSSProperties } = {
 		backgroundColor: '#3B82F6', // azul suave (Tailwind Blue-500)
 		color: '#fff',
 		fontSize: '16px',
-		cursor: 'pointer',
-		transition: 'background 0.3s ease',
-		WebkitAppRegion: 'no-drag',
-	} as any,
-	buttonHistory: {
-		width: '100%',
-		padding: '2px',
-		border: 'none',
-		borderRadius: '8px',
-		backgroundColor: '#10B981', // azul suave (Tailwind Blue-500)
-		color: '#fff',
-		fontSize: 10,
 		cursor: 'pointer',
 		transition: 'background 0.3s ease',
 		WebkitAppRegion: 'no-drag',

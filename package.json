@@ -18,7 +18,8 @@
       "public-electron/**/*",
       "node_modules/**/*",
       "package.json",
-      "src/preload.js"
+      "src/preload.js",
+      "src/assets/sugar-blood-level256.ico"
     ],
     "directories": {
       "buildResources": "assets"
@@ -29,7 +30,7 @@
     "win": {
       "target": "nsis",
       "icon": "src/assets/sugar-blood-level256.ico",
-      "signAndEditExecutable": false
+      "signAndEditExecutable": true
     },
     "linux": {
       "target": [

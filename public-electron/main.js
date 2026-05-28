@@ -14,8 +14,16 @@ const __dirname = path.dirname(__filename)
 
 let mainWindow
 
+if (process.platform === 'win32') {
+    app.setAppUserModelId('com.desktop-gr.id')
+}
+
 function createWindow() {
     const isLinux = process.platform === 'linux'
+    const isWindows = process.platform === 'win32'
+    const windowsIconPath = app.isPackaged
+        ? path.join(process.resourcesPath, 'app.asar.unpacked', 'src', 'assets', 'sugar-blood-level256.ico')
+        : path.join(__dirname, '../src/assets/sugar-blood-level256.ico')
 
     mainWindow = new BrowserWindow({
         width: 400,
@@ -24,6 +32,7 @@ function createWindow() {
         transparent: isLinux,
         alwaysOnTop: true,
         hasShadow: true,
+        icon: isWindows ? windowsIconPath : undefined,
         backgroundColor: isLinux ? '#00000000' : '#000000',
         resizable: true, // o false si querés que no se pueda cambiar el tamaño
         webPreferences: {
@@ -87,7 +96,7 @@ ipcMain.on('set-window', (event, screen) => {
             win.setSize(400, 700)
             break
         case 'main':
-            win.setSize(62, 50)
+            win.setSize(56, 34)
             // win.setResizable(false)
             break
         case 'history':
@@ -96,6 +105,21 @@ ipcMain.on('set-window', (event, screen) => {
     }
     win.setAlwaysOnTop(true, 'screen-saver')
     win.center()
+})
+
+ipcMain.handle('get-window-bounds', () => {
+    const win = BrowserWindow.getAllWindows()[0]
+    if (!win) return { x: 0, y: 0, width: 0, height: 0 }
+
+    return win.getBounds()
+})
+
+ipcMain.on('set-window-position', (_, { x, y }) => {
+    const win = BrowserWindow.getAllWindows()[0]
+    if (!win) return
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return
+
+    win.setPosition(Math.round(x), Math.round(y))
 })
 
 

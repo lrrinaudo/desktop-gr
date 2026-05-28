@@ -8,6 +8,7 @@ https://github.com/DiaKEM/libre-link-up-api-client
 - It takes the data from LibreLinkUp, so you need an account and login with the same credentials. It works in Ubuntu and Windows.  
 - It is set to be always on top, so you can drag it wherever, and it's small, only 62x50 pixels.  
 - The version is parameterized because when the LibreLinkUp endpoint changed its header, it was no longer possible to retrieve glucose levels. This way, version 5.3.0 is currently the latest one and works correctly, but it may change in the future.
+- New Version removes the History button and now to see the history chart just click the number, to move the window to any part of the screen just drag and drop.
 
 # Screenshots
 
